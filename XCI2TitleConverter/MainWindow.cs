@@ -18,6 +18,7 @@ namespace XCI2TitleConverter
         private string pathHactool = "";
         private string pathKeys = "";
         private string targetTitleId = "";
+        private int pathTraversalCounter = 0;
 
         public MainWindow()
         {
@@ -41,31 +42,51 @@ namespace XCI2TitleConverter
 
         private void dirSearch(DirectoryInfo sDir)
         {
-            foreach (DirectoryInfo subDir in sDir.GetDirectories())
+            try
             {
-                dirSearch(subDir);
+                foreach (DirectoryInfo subDir in sDir.GetDirectories())
+                {
+                    if (this.pathTraversalCounter < 5000)
+                    {
+                        pathTraversalCounter++;
+                        dirSearch(subDir);
+                    }
+
+                }
+
+
+                FileInfo[] Files = sDir.GetFiles("*.xci");
+                foreach (FileInfo file in Files)
+                {
+                    ComboboxItem item = new ComboboxItem();
+                    item.Text = sDir.Name + "/" + file.Name;
+                    this.cmbXCIFile.Items.Add(item);
+                }
+            }
+            catch (System.Security.SecurityException e)
+            {
+                //"Not Authorized to acces selected Directory or Subdirectories."
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                //"Not Authorized to acces selected Directory or Subdirectories."
             }
 
-            
-            FileInfo[] Files = sDir.GetFiles("*.xci");
-            foreach (FileInfo file in Files)
-            {
-                ComboboxItem item = new ComboboxItem();
-                item.Text = sDir.Name+"/"+file.Name;
-                this.cmbXCIFile.Items.Add(item);
-            }
         }
 
         private void readXCIDirectory()
         {
             if (this.pathXCIDir == null || this.pathXCIDir == "") return;
 
-            DirectoryInfo d = new DirectoryInfo(this.pathXCIDir);
-
+            this.pathTraversalCounter = 0;
             this.cmbXCIFile.Items.Clear();
             this.cmbXCIFile.SelectedItem = -1;
             this.cmbXCIFile.Text = "";
+
+
+            DirectoryInfo d = new DirectoryInfo(this.pathXCIDir);
             dirSearch(d);
+
 
         }
 
@@ -107,7 +128,7 @@ namespace XCI2TitleConverter
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Filter = "Hactool binary|hactool.exe";
             fileDialog.Title = "Select a hacktool.exe";
-         
+
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
                 this.pathHactool = fileDialog.FileName;
@@ -167,7 +188,7 @@ namespace XCI2TitleConverter
                 return false;
             }
 
-            if ( this.pathOutput == "")
+            if (this.pathOutput == "")
             {
                 MessageBox.Show("Missing output path", null, MessageBoxButtons.OK);
                 return false;
@@ -197,7 +218,7 @@ namespace XCI2TitleConverter
                 return false;
             }
 
-            
+
             if ((ComboboxItem)cmbXCIFile.SelectedItem == null)
             {
                 MessageBox.Show("Missing xci file value", null, MessageBoxButtons.OK);
