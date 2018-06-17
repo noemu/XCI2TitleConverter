@@ -39,23 +39,34 @@ namespace XCI2TitleConverter
             this.txtTitleId.Text = this.targetTitleId;
         }
 
+        private void dirSearch(DirectoryInfo sDir)
+        {
+            foreach (DirectoryInfo subDir in sDir.GetDirectories())
+            {
+                dirSearch(subDir);
+            }
+
+            
+            FileInfo[] Files = sDir.GetFiles("*.xci");
+            foreach (FileInfo file in Files)
+            {
+                ComboboxItem item = new ComboboxItem();
+                item.Text = sDir.Name+"/"+file.Name;
+                this.cmbXCIFile.Items.Add(item);
+            }
+        }
+
         private void readXCIDirectory()
         {
             if (this.pathXCIDir == null || this.pathXCIDir == "") return;
 
             DirectoryInfo d = new DirectoryInfo(this.pathXCIDir);
-            FileInfo[] Files = d.GetFiles("*.xci");
 
             this.cmbXCIFile.Items.Clear();
             this.cmbXCIFile.SelectedItem = -1;
             this.cmbXCIFile.Text = "";
+            dirSearch(d);
 
-            foreach (FileInfo file in Files)
-            {
-                ComboboxItem item = new ComboboxItem();
-                item.Text = file.Name;
-                this.cmbXCIFile.Items.Add(item);
-            }
         }
 
         private void btnXCIDir_Click(object sender, EventArgs e)
